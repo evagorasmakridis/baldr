@@ -5,6 +5,8 @@ A flight simulator for quadrotor drones written entirely in Python. This is curr
 
 ![alt tag](http://i61.tinypic.com/rr2s00.jpg)
 
+![alt tag](http://postimg.org/image/batq0sp43/)
+
 INSTALLATION INSTRUCTIONS:
 
 1. Install the required Python libraries if you don't already have them (the MORSE robotics simulator requires Python3):
