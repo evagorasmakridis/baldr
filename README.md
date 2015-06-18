@@ -5,7 +5,7 @@ A flight simulator for quadrotor drones written entirely in Python. This is curr
 
 ![alt tag](http://i61.tinypic.com/rr2s00.jpg)
 
-![alt tag](http://s21.postimg.org/batq0sp43/Screenshot_from_2015_06_18_22_00_34.jpg)
+![alt tag](http://s21.postimg.org/6oxlsg3l3/Screenshot_from_2015_06_18_22_00_34.png)
 
 INSTALLATION INSTRUCTIONS:
 
