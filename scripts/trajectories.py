@@ -11,8 +11,8 @@ class Tangential():
 	def __init__(self):
 		t0 = 0
 		t1 = 10
-		self.st = 1			# ref traj stiffness
-		self.lo = 0			# min speed
+		self.st = 1		# ref traj stiffness
+		self.lo = 0		# min speed
 		self.hi = 10		# max speed
 		self.tR = t0 + 2 * (t1 - t0) / 10
 		self.aR  = (self.hi - self.lo) / 2
@@ -27,9 +27,9 @@ class Tangential():
 		d5  = -8 * self.aR * self.st**5 * (15 * phi**6 - 30 * phi**4 + 17 * phi**2 - 2)
 
 		r = np.array([	[d0, d1, d2, d3, d4],
-						[d0, d1, d2, d3, d4],
-						[d0, d1, d2, d3, d4],
-						[d0, d1, d2, d3, d4]	])
+				[d0, d1, d2, d3, d4],
+				[d0, d1, d2, d3, d4],
+				[d0, d1, d2, d3, d4]	])
 
 		return r
 
@@ -57,9 +57,9 @@ class Spiral():
 		d4psi = 0
 
 		r = np.array([	[x,    dx,    d2x,   d3x,   d4x  ],
-						[y,    dy,    d2y,   d3y,   d4y  ],
-						[z,    dz,    d2z,   d3z,   d4z  ],
-						[psi,  dpsi,  d2psi, d3psi, d4psi]   ])
+				[y,    dy,    d2y,   d3y,   d4y  ],
+				[z,    dz,    d2z,   d3z,   d4z  ],
+				[psi,  dpsi,  d2psi, d3psi, d4psi]   ])
 
 		return r
 
