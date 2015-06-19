@@ -18,7 +18,7 @@ class Model():
 		self.l   	= 0.232					# blade length [m]
 		self.rho 	= 1.293					# air density [kgm^-3]
 		self.R   	= 0.15					# rotor radius [m]
-		self.A   	= np.pi * self.R**2		# rotor area [m^2]
+		self.A   	= np.pi * self.R**2			# rotor area [m^2]
 		self.CT  	= 0.0158				# thrust coefficient
 		self.CQ  	= 2.2e-3		
 		self.c  	= self.CT * self.rho * self.A * self.R**2
@@ -72,60 +72,60 @@ class Linear(Model):
 		dtheta_   = self.u[2] / self.Iy
 		dpsi_     = self.u[3] / self.Iz
 		return np.array([	x_,   dx_,   y_,     dy_,     z_,   dz_,
-							phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
+					phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
 
 class NonLinear1(Model):
 	def integration_loop(self, t, X):
 		self.compute_omega()
-		x_		= X[1]
-		y_		= X[3]
-		z_		= X[5]
+		x_	= X[1]
+		y_	= X[3]
+		z_	= X[5]
 		phi_	= X[7]
 		theta_	= X[9]
 		psi_	= X[11]
 		dx_ 	=   X[8] * self.u[0]  / self.m
-		dy_		= (-X[6] * self.u[0]) / self.m
-		dz_		= (-self.m * self.g + self.u[0]) / self.m
+		dy_	= (-X[6] * self.u[0]) / self.m
+		dz_	= (-self.m * self.g + self.u[0]) / self.m
 		dphi_	= self.u[1] / self.Ix
 		dtheta_	= self.u[2] / self.Iy
 		dpsi_	= self.u[3] / self.Iz
 		return np.array([	x_,   dx_,   y_,     dy_,     z_,   dz_,
-							phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
+					phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
 
 class NonLinear2(Model):
 	def integration_loop(self, t, X):
 		self.compute_omega()
-		x_		= X[1]
-		y_		= X[3]
-		z_		= X[5]
+		x_	= X[1]
+		y_	= X[3]
+		z_	= X[5]
 		phi_ 	= X[7]
 		theta_	= X[9]
 		psi_	= X[11]
-		dx_		= ( np.cos(X[6]) * np.sin(X[8])) * self.u[0] / self.m
-		dy_		= (-np.sin(X[6]) * np.cos(X[8])) * self.u[0] / self.m
-		dz_		= ( np.cos(X[6]) * np.cos(X[8])  * self.u[0] - self.m * self.g) / self.m
+		dx_	= ( np.cos(X[6]) * np.sin(X[8])) * self.u[0] / self.m
+		dy_	= (-np.sin(X[6]) * np.cos(X[8])) * self.u[0] / self.m
+		dz_	= ( np.cos(X[6]) * np.cos(X[8])  * self.u[0] - self.m * self.g) / self.m
 		dphi_	= (X[9] * X[11] * (self.Iy - self.Iz) + self.u[1]) / self.Ix
 		dtheta_	= (X[7] * X[11] * (self.Iz - self.Ix) + self.u[2]) / self.Iy
 		dpsi_	= (X[7] * X[9]  * (self.Ix - self.Iy) + self.u[3]) / self.Iz		
 		return np.array([	x_,   dx_,   y_,     dy_,     z_,   dz_,
-							phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
+					phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
 
 class NonLinear3(Model): 
 	def integration_loop(self, t, X):
 		self.compute_omega()
 		omegaR = self.omega[0] - self.omega[1] + self.omega[2] - self.omega[3]
-		x_		= X[1]
-		y_		= X[3]
-		z_		= X[5]
+		x_	= X[1]
+		y_	= X[3]
+		z_	= X[5]
 		phi_	= X[7]
 		theta_	= X[9]
 		psi_	= X[11]
-		dx_		= ( np.cos(X[6]) * np.sin(X[8])) * self.u[0] / self.m
-		dy_		= (-np.sin(X[6]) * np.cos(X[8])) * self.u[0] / self.m
-		dz_		= ( np.cos(X[6]) * np.cos(X[8])  * self.u[0] - self.m * self.g) / self.m
+		dx_	= ( np.cos(X[6]) * np.sin(X[8])) * self.u[0] / self.m
+		dy_	= (-np.sin(X[6]) * np.cos(X[8])) * self.u[0] / self.m
+		dz_	= ( np.cos(X[6]) * np.cos(X[8])  * self.u[0] - self.m * self.g) / self.m
 		dphi_	= (X[9] * X[11] * (self.Iy - self.Iz) + self.u[1] - self.Jr * X[9] * omegaR) / self.Ix
 		dtheta_	= (X[7] * X[11] * (self.Iz - self.Ix) + self.u[2] - self.Jr * X[7] * omegaR) / self.Iy 
 		dpsi_	= (X[7] * X[9]  * (self.Ix - self.Iy) + self.u[3]) / self.Iz		
 		return np.array([	x_,   dx_,   y_,     dy_,     z_,   dz_,
-							phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
+					phi_, dphi_, theta_, dtheta_, psi_, dpsi_	])
 
