@@ -15,7 +15,7 @@ Check out baldr's Wiki (https://github.com/motet/baldr/wiki) for developer infor
 	`$ sudo apt-get install python3 python3-scipy python3-numpy python3-matplotlib`
 
 2. Install MORSE with the command:
-	`$ sudo apt-get install morse-simulator.`
+	`$ sudo apt-get install morse-simulator`.
 	If you don't already have Blender, this should install it automatically. Use the default settings (ie. make the default folder for simulation files your Home folder).
 
 3. You need to create a simulation called "baldr" in MORSE. Do this with the command:
