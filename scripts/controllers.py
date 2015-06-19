@@ -48,7 +48,7 @@ class FlatControlLaw(Controller):
 		self.e[2][0] = y[4]  - r[2][0];		self.e[2][1] = y[5]  - r[2][1]
 		self.e[3][0] = y[10] - r[3][0];		self.e[3][1] = y[11] - r[3][1]
 
-		self.u[0	=   self.m * (self.g + r[2][2] - self.lamz[0] * self.e[2][0] - self.lamz[1] * self.e[2][1])
+		self.u[0]	=   self.m * (self.g + r[2][2] - self.lamz[0] * self.e[2][0] - self.lamz[1] * self.e[2][1])
 		d2ez 		=  ( self.u[0] / self.m) - self.g - r[2][2]
 		du1  		=   self.m * (r[2][3] - self.lamz[0] * self.e[2][1] - self.lamz[1] * d2ez)
 		d3ez 		=   du1 / self.m - r[2][3]
@@ -58,7 +58,7 @@ class FlatControlLaw(Controller):
 		d2ex 		=  (y[8] * self.u[0]) / self.m - r[0][2]  
 		d3ex 		=  (y[9] * self.u[0]  + y[8] * du1) / self.m - r[0][3]
 		self.u[1]   	= (-self.Ix / self.u[0]) * ( 2 * y[7] * du1 + y[6] * d2u1 + self.m * r[1][4] - self.m * (self.lamxy[0] * self.e[1][0] + self.lamxy[1] * self.e[1][1] + self.lamxy[2] * d2ey + self.lamxy[3] * d3ey))
-		self.u[2	= ( self.Iy / self.u[0]) * (-2 * y[9] * du1 - y[8] * d2u1 + self.m * r[0][4] - self.m * (self.lamxy[0] * self.e[0][0] + self.lamxy[1] * self.e[0][1] + self.lamxy[2] * d2ex + self.lamxy[3] * d3ex))
+		self.u[2]	= ( self.Iy / self.u[0]) * (-2 * y[9] * du1 - y[8] * d2u1 + self.m * r[0][4] - self.m * (self.lamxy[0] * self.e[0][0] + self.lamxy[1] * self.e[0][1] + self.lamxy[2] * d2ex + self.lamxy[3] * d3ex))
 		self.u[3]   	=   self.Iz * (r[3][2] - self.lampsi[0] * self.e[3][0] - self.lampsi[1] * self.e[3][1])
 
 		self.ur[0]	=   self.m * (self.g + r[2][2])
