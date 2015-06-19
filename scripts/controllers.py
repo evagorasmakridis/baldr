@@ -24,10 +24,10 @@ class Controller():
 class FlatControlLaw(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-		self.e = np.array([ [0.0, 0.0],		# ex,   dex
-						 	[0.0, 0.0],		# ey,   dey
-						  	[0.0, 0.0],		# ex,   dez
-						  	[0.0, 0.0] ])	# epsi, depsi
+		self.e = np.array([ 	[0.0, 0.0],	# ex,   dex
+					[0.0, 0.0],	# ey,   dey
+				 	[0.0, 0.0],	# ex,   dez
+					[0.0, 0.0] ])	# epsi, depsi
 		'''
 		(s+s1)(s+s2)(s+s3)(s+s4) = s**4 + (s1+s2+s3+s4)*s**3 +
 		                           (s1*s2+s1*s3+s1*s4+s2*s3+s2*s4+s3*s4)*s**2 +
@@ -48,7 +48,7 @@ class FlatControlLaw(Controller):
 		self.e[2][0] = y[4]  - r[2][0];		self.e[2][1] = y[5]  - r[2][1]
 		self.e[3][0] = y[10] - r[3][0];		self.e[3][1] = y[11] - r[3][1]
 
-		self.u[0]   =   self.m * (self.g + r[2][2] - self.lamz[0] * self.e[2][0] - self.lamz[1] * self.e[2][1])
+		self.u[0	=   self.m * (self.g + r[2][2] - self.lamz[0] * self.e[2][0] - self.lamz[1] * self.e[2][1])
 		d2ez 		=  ( self.u[0] / self.m) - self.g - r[2][2]
 		du1  		=   self.m * (r[2][3] - self.lamz[0] * self.e[2][1] - self.lamz[1] * d2ez)
 		d3ez 		=   du1 / self.m - r[2][3]
@@ -57,9 +57,9 @@ class FlatControlLaw(Controller):
 		d3ey 		= -(y[7] * self.u[0]  + y[6] * du1) / self.m - r[1][3]
 		d2ex 		=  (y[8] * self.u[0]) / self.m - r[0][2]  
 		d3ex 		=  (y[9] * self.u[0]  + y[8] * du1) / self.m - r[0][3]
-		self.u[1]   = (-self.Ix / self.u[0]) * ( 2 * y[7] * du1 + y[6] * d2u1 + self.m * r[1][4] - self.m * (self.lamxy[0] * self.e[1][0] + self.lamxy[1] * self.e[1][1] + self.lamxy[2] * d2ey + self.lamxy[3] * d3ey))
-		self.u[2]   = ( self.Iy / self.u[0]) * (-2 * y[9] * du1 - y[8] * d2u1 + self.m * r[0][4] - self.m * (self.lamxy[0] * self.e[0][0] + self.lamxy[1] * self.e[0][1] + self.lamxy[2] * d2ex + self.lamxy[3] * d3ex))
-		self.u[3]   =   self.Iz * (r[3][2] - self.lampsi[0] * self.e[3][0] - self.lampsi[1] * self.e[3][1])
+		self.u[1]   	= (-self.Ix / self.u[0]) * ( 2 * y[7] * du1 + y[6] * d2u1 + self.m * r[1][4] - self.m * (self.lamxy[0] * self.e[1][0] + self.lamxy[1] * self.e[1][1] + self.lamxy[2] * d2ey + self.lamxy[3] * d3ey))
+		self.u[2	= ( self.Iy / self.u[0]) * (-2 * y[9] * du1 - y[8] * d2u1 + self.m * r[0][4] - self.m * (self.lamxy[0] * self.e[0][0] + self.lamxy[1] * self.e[0][1] + self.lamxy[2] * d2ex + self.lamxy[3] * d3ex))
+		self.u[3]   	=   self.Iz * (r[3][2] - self.lampsi[0] * self.e[3][0] - self.lampsi[1] * self.e[3][1])
 
 		self.ur[0]	=   self.m * (self.g + r[2][2])
 		du1r		=   self.m *  r[2][3]
@@ -77,25 +77,25 @@ class FlatControlLaw(Controller):
 class DiscretePid(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-		self.params = { 'dz':		{'Kp':2.0, 'Ki':0.5, 'Kd':3.0,
+		self.params = { 'dz':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
 						'int_min':-20, 'int_max':20,
 						'ref':0, 'integrator':0, 'derivator':0,
 						'hi_control':10.00, 'lo_control':0.00,
 						'PID_max':10.00, 'PID_min':0.00,
 						'gain_multiplier':self.m*self.g		},
-			      	'dphi':		{'Kp':2.0, 'Ki':0.5, 'Kd':2.0,
+			      	'dphi':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
 						'int_min':-20, 'int_max':20,
 						'ref':0, 'integrator':0, 'derivator':0,
 						'hi_control':0.05, 'lo_control':-0.05,
 						'PID_max':None, 'PID_min':None,
 						'gain_multiplier':10*self.Ix		},
-			    	'dtheta':	{'Kp':2.0, 'Ki':0.5, 'Kd':2.0,
+			    	'dtheta':	{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
 						'int_min':-20, 'int_max':20,
 						'ref':0, 'integrator':0, 'derivator':0,
 						'hi_control':0.05, 'lo_control':-0.05,
 						'PID_max':None, 'PID_min':None,
 						'gain_multiplier':10*self.Iy		},
-			      	'dpsi':		{'Kp':2.0, 'Ki':0.5, 'Kd':2.5,
+			      	'dpsi':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
 						'int_min':-20, 'int_max':20,
 						'ref':0, 'integrator':0, 'derivator':0,
 						'hi_control':0.025, 'lo_control':-0.025,	
@@ -106,6 +106,8 @@ class DiscretePid(Controller):
 			self.params[par]['Kp'] *= self.params[par]['gain_multiplier']
 			self.params[par]['Ki'] *= self.params[par]['gain_multiplier']
 			self.params[par]['Kd'] *= self.params[par]['gain_multiplier']
+			
+		self.dt = 0.01
 
 	def __call__(self, y, keys):
 		self.params['dz']['state']     = y[5]
@@ -131,7 +133,7 @@ class DiscretePid(Controller):
 	def get_pid(self, par):
 		error = par['ref'] - par['state']
 		P_val = par['Kp'] * error
-		D_val = par['Kd'] * (error - par['derivator'])
+		D_val = par['Kd'] * (error - par['derivator']) / self.dt
 		par['derivator'] = error
 
 		par['integrator'] += error
@@ -148,7 +150,6 @@ class DiscretePid(Controller):
 class CascadeInteractive(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-		self.time_step = 0.01
 
 		self.pids = {}
 		self.pids['u1A'] = dict(Kp=2.0, Ki=0.5, Kd=0.0,
@@ -204,6 +205,8 @@ class CascadeInteractive(Controller):
 			self.pids[pid]['Kp'] *= self.pids[pid]['gain_factor']
 			self.pids[pid]['Ki'] *= self.pids[pid]['gain_factor']
 			self.pids[pid]['Kd'] *= self.pids[pid]['gain_factor']
+			
+		self.dt = 0.01
 
 	def __call__(self, y, keys):
 		self.pids['u1A']['state'] = y[5]
@@ -249,14 +252,14 @@ class CascadeInteractive(Controller):
 		if   keys['left']  == True:	self.pids['u4A']['reference'] =  np.pi
 		elif keys['right'] == True:	self.pids['u4A']['reference'] = -np.pi
 		else:				self.pids['u4A']['reference'] =  0.0
-		self.u[3] = self.get_pid(self.pids['u4A'])
+		self.u[3] = 			self.get_pid(self.pids['u4A'])
 
 		return self.u
 
 	def get_pid(self, pid):
 		error = pid['reference'] - pid['state']
 		P = pid['Kp'] *  error
-		D = pid['Kd'] * (error - pid['derivator']) / self.time_step
+		D = pid['Kd'] * (error - pid['derivator']) / self.dt
 		pid['derivator'] = error
 
 		pid['integrator'] += error
@@ -275,7 +278,6 @@ class CascadeInteractive(Controller):
 class CascadeTracking(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-		self.time_step = 0.01
 
 		self.pids = {}
 		self.pids['u1A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
@@ -355,6 +357,8 @@ class CascadeTracking(Controller):
 			self.pids[pid]['Kp'] *= self.pids[pid]['gain_factor']
 			self.pids[pid]['Ki'] *= self.pids[pid]['gain_factor']
 			self.pids[pid]['Kd'] *= self.pids[pid]['gain_factor']
+			
+		self.dt = 0.01
 
 	def __call__(self, y, r):
 		self.pids['u1A']['state'] = y[5]
@@ -388,7 +392,7 @@ class CascadeTracking(Controller):
 		self.u[2] =				self.get_pid(self.pids['u3A'])
 
 		self.pids['u4A']['reference'] = 	self.get_pid(self.pids['u4B'])
-		self.u[3] = self.get_pid(self.pids['u4A'])
+		self.u[3] = 				self.get_pid(self.pids['u4A'])
 
 		ur = [	self.pids['u1A']['reference'],
 			self.pids['u2A']['reference'],
@@ -399,7 +403,7 @@ class CascadeTracking(Controller):
 	def get_pid(self, pid):
 		error = pid['reference'] - pid['state']
 		P = pid['Kp'] *  error
-		D = pid['Kd'] * (error - pid['derivator']) / self.time_step
+		D = pid['Kd'] * (error - pid['derivator']) / self.dt
 		pid['derivator'] = error
 
 		pid['integrator'] += error
