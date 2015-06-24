@@ -15,9 +15,9 @@ class Simulation():
 		self.post = q
 
 		# time settings
-		self.t0 = 0					# initial time
-		self.t1 = t1				# final time
-		self.dt = dt				# time step for integration
+		self.t0 = 0			# initial time
+		self.t1 = t1			# final time
+		self.dt = dt			# time step for integration
 		self.tscale = tscale		# time scale for blender render
 
 		# initial values
