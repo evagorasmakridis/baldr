@@ -74,154 +74,76 @@ class FlatControlLaw(Controller):
 
 		return self.u, self.ur
 
+class Pid():
+	def __init__(self, Kp, Ki, Kd, lim=None):
+		self.Kp = Kp
+		self.Ki = Ki
+		self.Kd = Kd
+		self.lim = lim
+		self.integrator_lim = (-20, 20)
+		self.integrator = 0
+		self.derivator = 0
+		self.dt = 0.01
+		
+	def set_reference(self, r):
+		self.r = r
+		
+	def get_u(self, y):
+		e = self.r - y
+		P = self.Kp * e
+		D = self.Kd * (e - self.derivator) / self.dt
+		self.derivator = e
+		self.integrator += e
+		if   self.integrator < self.integrator_lim[0]: self.integrator = self.integrator_lim[0]
+		elif self.integrator > self.integrator_lim[1]: self.integrator = self.integrator_lim[1]
+		I = self.integrator * self.Ki
+		PID = P + I + D
+		if self.lim and PID < self.lim[0]: PID = self.lim[0]
+		if self.lim and PID > self.lim[1]: PID = self.lim[1]
+		return PID
+
 class DiscretePid(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-		self.params = { 'dz':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
-						'int_min':-20, 'int_max':20,
-						'ref':0, 'integrator':0, 'derivator':0,
-						'hi_control':10.00, 'lo_control':0.00,
-						'PID_max':10.00, 'PID_min':0.00,
-						'gain_multiplier':self.m*self.g		},
-			      	'dphi':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
-						'int_min':-20, 'int_max':20,
-						'ref':0, 'integrator':0, 'derivator':0,
-						'hi_control':0.05, 'lo_control':-0.05,
-						'PID_max':None, 'PID_min':None,
-						'gain_multiplier':10*self.Ix		},
-			    	'dtheta':	{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
-						'int_min':-20, 'int_max':20,
-						'ref':0, 'integrator':0, 'derivator':0,
-						'hi_control':0.05, 'lo_control':-0.05,
-						'PID_max':None, 'PID_min':None,
-						'gain_multiplier':10*self.Iy		},
-			      	'dpsi':		{'Kp':2.0, 'Ki':0.5, 'Kd':0.0,
-						'int_min':-20, 'int_max':20,
-						'ref':0, 'integrator':0, 'derivator':0,
-						'hi_control':0.025, 'lo_control':-0.025,	
-						'PID_max':None, 'PID_min':None,
-						'gain_multiplier':10*self.Iz		}	}
-
-		for par in self.params:
-			self.params[par]['Kp'] *= self.params[par]['gain_multiplier']
-			self.params[par]['Ki'] *= self.params[par]['gain_multiplier']
-			self.params[par]['Kd'] *= self.params[par]['gain_multiplier']
-			
-		self.dt = 0.01
+		self.pids = dict(	u1A=Pid(2.0*self.m*self.g, 0.5*self.m*self.g, 0.0, lim=(0, 10)),
+					u2A=Pid(20.0*self.Ix, 5.0*self.Ix, 0.0),
+					u3A=Pid(20.0*self.Iy, 5.0*self.Iy, 0.0),
+					u4A=Pid(20.0*self.Iz, 5.0*self.Iz, 0.0)					)
+		for pid in self.pids: self.pids[pid].set_reference(0.0)
 
 	def __call__(self, y, keys):
-		self.params['dz']['state']     = y[5]
-		self.params['dphi']['state']   = y[7]
-		self.params['dtheta']['state'] = y[9]
-		self.params['dpsi']['state']   = y[11]
- 
-		if   keys['up']    == True:	self.u[0] = self.params['dz']['hi_control']
-		elif keys['down']  == True:	self.u[0] = self.params['dz']['lo_control']
-		else: 				self.u[0] = self.get_pid(self.params['dz'])
-		if   keys['l']     == True:	self.u[1] = self.params['dphi']['hi_control']
-		elif keys['j']     == True:	self.u[1] = self.params['dphi']['lo_control']
-		else:				self.u[1] = self.get_pid(self.params['dphi'])
-		if   keys['i']     == True:	self.u[2] = self.params['dtheta']['hi_control']
-		elif keys['k']     == True:	self.u[2] = self.params['dtheta']['lo_control']
-		else:				self.u[2] = self.get_pid(self.params['dtheta'])
-		if   keys['left']  == True:	self.u[3] = self.params['dpsi']['hi_control']
-		elif keys['right'] == True:	self.u[3] = self.params['dpsi']['lo_control']
-		else:				self.u[3] = self.get_pid(self.params['dpsi'])	
+		if   keys['up']    == True:	self.u[0] = 10.0
+		elif keys['down']  == True:	self.u[0] =  0.0
+		else: 				self.u[0] = self.pids['u1A'].get_u(y[5])
+		if   keys['l']     == True:	self.u[1] =  0.05
+		elif keys['j']     == True:	self.u[1] = -0.05
+		else:				self.u[1] = self.pids['u2A'].get_u(y[7])
+		if   keys['i']     == True:	self.u[2] =  0.05
+		elif keys['k']     == True:	self.u[2] = -0.05
+		else:				self.u[2] = self.pids['u3A'].get_u(y[9])
+		if   keys['left']  == True:	self.u[3] =  0.025
+		elif keys['right'] == True:	self.u[3] = -0.025
+		else:				self.u[3] = self.pids['u4A'].get_u(y[11])
 
 		return self.u
-
-	def get_pid(self, par):
-		error = par['ref'] - par['state']
-		P_val = par['Kp'] * error
-		D_val = par['Kd'] * (error - par['derivator']) / self.dt
-		par['derivator'] = error
-
-		par['integrator'] += error
-		if   par['integrator'] > par['int_max']: par['integrator'] = par['int_max']
-		elif par['integrator'] < par['int_min']: par['integrator'] = par['int_min']
-		I_val = par['integrator'] * par['Ki']
-
-		PID = P_val + I_val + D_val
-		if par['PID_min'] and PID < par['PID_min']: PID = par['PID_min']
-		if par['PID_max'] and PID > par['PID_max']: PID = par['PID_max']
-
-		return PID
 
 class CascadeInteractive(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-
-		self.pids = {}
-		self.pids['u1A'] = dict(Kp=2.0, Ki=0.5, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(0, 10),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=self.m*self.g)
-		self.pids['u3A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Ix)
-		self.pids['u3B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi, np.pi),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10)
-		self.pids['u3C'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi/4, np.pi/4),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1/self.g)
-		self.pids['u2A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Iy)
-		self.pids['u2B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi, np.pi),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10)
-		self.pids['u2C'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi/4, np.pi/4),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1/self.g)
-		self.pids['u4A'] = dict(Kp=2.0, Ki=0.5, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Iz)
-
-		for pid in self.pids:
-			self.pids[pid]['Kp'] *= self.pids[pid]['gain_factor']
-			self.pids[pid]['Ki'] *= self.pids[pid]['gain_factor']
-			self.pids[pid]['Kd'] *= self.pids[pid]['gain_factor']
-			
-		self.dt = 0.01
+		self.pids = dict(	u1A=Pid(2.0*self.m*self.g, 0.5*self.m*self.g, 0.0, lim=(0, 10)),
+					u2A=Pid(20.0*self.Ix, 0.0, 0.0),
+					u2B=Pid(20.0, 0.0, 0.0, lim=(-np.pi, np.pi)),
+					u2C=Pid(4.0/self.g, 0.0, 0.0, lim=(-np.pi/4, np.pi/4)),
+					u3A=Pid(20.0*self.Iy, 0.0, 0.0),
+					u3B=Pid(20.0, 0.0, 0.0, lim=(-np.pi, np.pi)),
+					u3C=Pid(4.0/self.g, 0.0, 0.0, lim=(-np.pi/4, np.pi/4)),
+					u4A=Pid(20.0*self.Iz, 5.0*self.Iz, 0.0, lim=(0, 10))			)
 
 	def __call__(self, y, keys):
-		self.pids['u1A']['state'] = y[5]
-		self.pids['u3A']['state'] = y[9]
-		self.pids['u3B']['state'] = y[8]
-		self.pids['u3C']['state'] = y[1]
-		self.pids['u2A']['state'] = y[7]
-		self.pids['u2B']['state'] = y[6]
-		self.pids['u2C']['state'] = y[3]
-		self.pids['u4A']['state'] = y[11]
-
-		if   keys['up']    == True:	self.pids['u1A']['reference'] =  3.0
-		elif keys['down']  == True:	self.pids['u1A']['reference'] = -3.0
-		else: 				self.pids['u1A']['reference'] =  0.0
-		self.u[0] = self.get_pid(self.pids['u1A'])
+		if   keys['up']    == True:	self.pids['u1A'].set_reference( 3.0)
+		elif keys['down']  == True:	self.pids['u1A'].set_reference(-3.0)
+		else: 				self.pids['u1A'].set_reference( 0.0)
+		self.u[0] = self.pids['u1A'].get_u(y[5])
 
 		gamma = None
 		if keys['i']:
@@ -236,185 +158,63 @@ class CascadeInteractive(Controller):
 		elif keys['l']: gamma = y[10] - np.pi/2
 
 		if gamma is not None:
-			self.pids['u2C']['reference'] = 10.0 * np.sin(gamma)
-			self.pids['u3C']['reference'] = 10.0 * np.cos(gamma)
+			self.pids['u2C'].set_reference(10.0 * np.sin(gamma))
+			self.pids['u3C'].set_reference(10.0 * np.cos(gamma))
 		else:
-			self.pids['u2C']['reference'] = 0.0
-			self.pids['u3C']['reference'] = 0.0
+			self.pids['u2C'].set_reference(0.0)
+			self.pids['u3C'].set_reference(0.0)
 
-		self.pids['u2B']['reference'] = 	self.get_pid(self.pids['u2C']) * -1.0
-		self.pids['u2A']['reference'] = 	self.get_pid(self.pids['u2B'])
-		self.u[1] =				self.get_pid(self.pids['u2A'])
-		self.pids['u3B']['reference'] = 	self.get_pid(self.pids['u3C'])
-		self.pids['u3A']['reference'] =		self.get_pid(self.pids['u3B'])
-		self.u[2] =				self.get_pid(self.pids['u3A'])
+		self.pids['u2B'].set_reference(self.pids['u2C'].get_u(y[3]) * -1.0)
+		self.pids['u2A'].set_reference(self.pids['u2B'].get_u(y[6]))
+		self.u[1] =		       self.pids['u2A'].get_u(y[7])
+		self.pids['u3B'].set_reference(self.pids['u3C'].get_u(y[1]))
+		self.pids['u3A'].set_reference(self.pids['u3B'].get_u(y[8]))
+		self.u[2] =		       self.pids['u3A'].get_u(y[9])
 
-		if   keys['left']  == True:	self.pids['u4A']['reference'] =  np.pi
-		elif keys['right'] == True:	self.pids['u4A']['reference'] = -np.pi
-		else:				self.pids['u4A']['reference'] =  0.0
-		self.u[3] = 			self.get_pid(self.pids['u4A'])
+		if   keys['left']  == True:	self.pids['u4A'].set_reference( np.pi)
+		elif keys['right'] == True:	self.pids['u4A'].set_reference(-np.pi)
+		else:				self.pids['u4A'].set_reference( 0.0)
+		self.u[3] = 			self.pids['u4A'].get_u(y[11])
 
 		return self.u
-
-	def get_pid(self, pid):
-		error = pid['reference'] - pid['state']
-		P = pid['Kp'] *  error
-		D = pid['Kd'] * (error - pid['derivator']) / self.dt
-		pid['derivator'] = error
-
-		pid['integrator'] += error
-		if   pid['integrator'] > pid['integrator_limit'][1]: pid['integrator'] = pid['integrator_limit'][1]
-		elif pid['integrator'] < pid['integrator_limit'][0]: pid['integrator'] = pid['integrator_limit'][0]
-		I = pid['integrator'] * pid['Ki']
-
-		PID = P + I + D
-
-		if pid['pid_limit']:
-			if   PID < pid['pid_limit'][0]: PID = pid['pid_limit'][0]
-			elif PID > pid['pid_limit'][1]: PID = pid['pid_limit'][1]
-
-		return PID
 
 class CascadeTracking(Controller):
 	def __init__(self):
 		Controller.__init__(self)
-
-		self.pids = {}
-		self.pids['u1A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(0, 10),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1)
-		self.pids['u1B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(0, 10),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=self.m*self.g)
-		self.pids['u3A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Ix)
-		self.pids['u3B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi, np.pi),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10)
-		self.pids['u3C'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi/4, np.pi/4),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1/self.g)
-		self.pids['u3D'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1)
-		self.pids['u2A'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Iy)
-		self.pids['u2B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi, np.pi),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10)
-		self.pids['u2C'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=(-np.pi/4, np.pi/4),
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1/self.g)
-		self.pids['u2D'] = dict(Kp=4.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1)
-		self.pids['u4A'] = dict(Kp=2.0, Ki=0.5, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=10*self.Iz)
-		self.pids['u4B'] = dict(Kp=2.0, Ki=0.0, Kd=0.0,
-					integrator_limit=(-20, 20),
-					pid_limit=None,
-					state=0, reference=0,
-					derivator=0, integrator=0,
-					gain_factor=1)
-
-		for pid in self.pids:
-			self.pids[pid]['Kp'] *= self.pids[pid]['gain_factor']
-			self.pids[pid]['Ki'] *= self.pids[pid]['gain_factor']
-			self.pids[pid]['Kd'] *= self.pids[pid]['gain_factor']
-			
-		self.dt = 0.01
+		self.pids = dict(	u1A=Pid(2.0, 0.0, 0.0, lim=(0, 10)),
+					u1B=Pid(2.0*self.m*self.g, 0.0, 0.0),
+					u2A=Pid(20.0*self.Ix, 0.0, 0.0),
+					u2B=Pid(20.0, 0.0, 0.0, lim=(-np.pi, np.pi)),
+					u2C=Pid(4.0/self.g, 0.0, 0.0, lim=(-np.pi/4, np.pi/4)),
+					u2D=Pid(4.0, 0.0, 0.0),
+					u3A=Pid(20.0*self.Iy, 0.0, 0.0),
+					u3B=Pid(20.0, 0.0, 0.0, lim=(-np.pi, np.pi)),
+					u3C=Pid(4.0/self.g, 0.0, 0.0, lim=(-np.pi/4, np.pi/4)),
+					u3D=Pid(4.0, 0.0, 0.0),
+					u4A=Pid(20.0*self.Iz, 5.0*self.Iz, 0.0, lim=(0, 10)),
+					u4B=Pid(2.0, 0.0, 0.0)							)
 
 	def __call__(self, y, r):
-		self.pids['u1A']['state'] = y[5]
-		self.pids['u1B']['state'] = y[4]
-		self.pids['u3A']['state'] = y[9]
-		self.pids['u3B']['state'] = y[8]
-		self.pids['u3C']['state'] = y[1]
-		self.pids['u3D']['state'] = y[0]
-		self.pids['u2A']['state'] = y[7]
-		self.pids['u2B']['state'] = y[6]
-		self.pids['u2C']['state'] = y[3]
-		self.pids['u2D']['state'] = y[2]
-		self.pids['u4A']['state'] = y[11]
-		self.pids['u4B']['state'] = y[10]
+		self.pids['u1B'].set_reference(r[2][0])
+		self.pids['u2D'].set_reference(r[1][0])
+		self.pids['u3D'].set_reference(r[0][0])
+		self.pids['u4B'].set_reference(r[3][0])
+		self.pids['u1A'].set_reference(self.pids['u1B'].get_u(y[4]))
+		self.u[0] = 		       self.pids['u1A'].get_u(y[5])
+		self.pids['u2C'].set_reference(self.pids['u2D'].get_u(y[2]))
+		self.pids['u2B'].set_reference(self.pids['u2C'].get_u(y[3]) * -1.0)
+		self.pids['u2A'].set_reference(self.pids['u2B'].get_u(y[6]))
+		self.u[1] =		       self.pids['u2A'].get_u(y[7])
+		self.pids['u3C'].set_reference(self.pids['u3D'].get_u(y[0]))
+		self.pids['u3B'].set_reference(self.pids['u3C'].get_u(y[1]))
+		self.pids['u3A'].set_reference(self.pids['u3B'].get_u(y[8]))
+		self.u[2] =		       self.pids['u3A'].get_u(y[9])
+		self.pids['u4A'].set_reference(self.pids['u4B'].get_u(y[10]))
+		self.u[3] = 		       self.pids['u4A'].get_u(y[11])
 
-		self.pids['u1B']['reference'] = r[2][0]
-		self.pids['u2D']['reference'] = r[1][0]
-		self.pids['u3D']['reference'] = r[0][0]
-		self.pids['u4B']['reference'] = r[3][0]
+		ur = [	self.pids['u1A'].r,
+			self.pids['u2A'].r,
+			self.pids['u3A'].r,
+			self.pids['u4A'].r	]
 
-		self.pids['u1A']['reference'] = 	self.get_pid(self.pids['u1B'])
-		self.u[0] = self.get_pid(self.pids['u1A'])
-
-		self.pids['u2C']['reference'] = 	self.get_pid(self.pids['u2D'])
-		self.pids['u2B']['reference'] = 	self.get_pid(self.pids['u2C']) * -1.0
-		self.pids['u2A']['reference'] = 	self.get_pid(self.pids['u2B'])
-		self.u[1] =				self.get_pid(self.pids['u2A'])
-		self.pids['u3C']['reference'] = 	self.get_pid(self.pids['u3D'])
-		self.pids['u3B']['reference'] = 	self.get_pid(self.pids['u3C'])
-		self.pids['u3A']['reference'] =		self.get_pid(self.pids['u3B'])
-		self.u[2] =				self.get_pid(self.pids['u3A'])
-
-		self.pids['u4A']['reference'] = 	self.get_pid(self.pids['u4B'])
-		self.u[3] = 				self.get_pid(self.pids['u4A'])
-
-		ur = [	self.pids['u1A']['reference'],
-			self.pids['u2A']['reference'],
-			self.pids['u3A']['reference'],
-			self.pids['u4A']['reference']	]
 		return self.u, ur
-
-	def get_pid(self, pid):
-		error = pid['reference'] - pid['state']
-		P = pid['Kp'] *  error
-		D = pid['Kd'] * (error - pid['derivator']) / self.dt
-		pid['derivator'] = error
-
-		pid['integrator'] += error
-		if   pid['integrator'] > pid['integrator_limit'][1]: pid['integrator'] = pid['integrator_limit'][1]
-		elif pid['integrator'] < pid['integrator_limit'][0]: pid['integrator'] = pid['integrator_limit'][0]
-		I = pid['integrator'] * pid['Ki']
-
-		PID = P + I + D
-
-		if pid['pid_limit']:
-			if   PID < pid['pid_limit'][0]: PID = pid['pid_limit'][0]
-			elif PID > pid['pid_limit'][1]: PID = pid['pid_limit'][1]
-
-		return PID
