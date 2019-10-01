@@ -3,12 +3,6 @@ An open source flight simulator for aerial drones written entirely in Python. Th
 
 Here's a short video demonstration of v1.0: https://www.youtube.com/watch?v=0st4ma6SF8Y&feature=youtu.be.
 
-![alt tag](http://i58.tinypic.com/wrki88.jpg)
-
-![alt tag](http://i61.tinypic.com/rr2s00.jpg)
-
-![alt tag](http://s21.postimg.org/6oxlsg3l3/Screenshot_from_2015_06_18_22_00_34.png)
-
 ## Installation Instructions
 
 1. Install the required Python libraries if you don't already have them (the MORSE robotics simulator requires Python3):
